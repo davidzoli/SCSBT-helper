@@ -66,7 +66,7 @@ class UpdateMaterial(bpy.types.Operator):
     bl_label = "Update BT Material"
 
     def execute(self, context):
-        colors = ["shader_attribute_diffuse", "shader_attribute_env_factor", "shader_attribute_specular"]
+        colors = ["shader_attribute_diffuse", "shader_attribute_env_factor", "shader_attribute_specular", "shader_attribute_tint"]
         for key in bpy.context.object.active_material.scs_props.keys():
             if (key in colors):
                 bpy.context.object.active_material.scs_props[key][0] = convertColor(bpy.context.object.active_material.scs_props[key][0])
