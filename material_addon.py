@@ -20,7 +20,7 @@ class ConvertMaterial(bpy.types.Operator):
     def execute(self, context):
         floats = ["add_ambient", "reflection", "reflection2", "shadow_bias", "shininess", "tint_opacity"]
         colors = ["diffuse", "env_factor", "specular"]
-        sets   = ["fresnel", "tint"]
+        sets   = ["fresnel", "tint"]                                                                                # tint seems to be a color!
 
         for key in context.active_object.active_material["scs_mat_options"].keys():
             newval = ''
