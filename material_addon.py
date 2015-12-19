@@ -19,8 +19,8 @@ class ConvertMaterial(bpy.types.Operator):
 
     def execute(self, context):
         floats = ["add_ambient", "reflection", "reflection2", "shadow_bias", "shininess", "tint_opacity"]
-        colors = ["diffuse", "env_factor", "specular", "tint"]
-        sets   = ["fresnel"]
+        colors = ["diffuse", "tint", "env_factor"]
+        sets   = ["fresnel", "specular"]
 
         for key in context.active_object.active_material["scs_mat_options"].keys():
             newval = ''
@@ -74,6 +74,37 @@ class UpdateMaterial(bpy.types.Operator):
                 bpy.context.object.active_material.scs_props[key][2] = convertColor(bpy.context.object.active_material.scs_props[key][2])
         return {'FINISHED'}
 
+class ConvertLocator(bpy.types.Operator):
+    bl_idname = "object.convert_locator"
+    bl_label = "Convert BT Locator"
+
+    def execute(self, context):
+        from math import pi
+        from mathutils import Matrix
+        for obj in bpy.context.selected_objects:
+            if obj.type == "EMPTY":
+                obj.rotation_mode = "QUATERNION"
+                obj.rotation_quaternion = (obj.rotation_quaternion.to_matrix().to_4x4() * Matrix.Rotation(pi/2, 4, (1,0,0)) * Matrix.Rotation(pi, 4, (0,1,0))).to_quaternion()
+                obj.rotation_mode = "XYZ"
+                obj.scs_props.empty_object_type = "Locator"
+                obj.scs_props.locator_type = "Model"
+                obj.name = obj.name.strip("[]").lower()
+        return {'FINISHED'}
+
+class RotateMesh(bpy.types.Operator):
+    bl_idname = "object.rotate_mesh"
+    bl_label = "Rotate BT Mesh"
+
+    def execute(self, context):
+        from math import pi
+        from mathutils import Matrix
+        for obj in bpy.context.selected_objects:
+                obj.rotation_mode = "QUATERNION"
+                obj.rotation_quaternion = (obj.rotation_quaternion.to_matrix().to_4x4() * Matrix.Rotation(pi/2, 4, (1,0,0)) * Matrix.Rotation(pi, 4, (0,1,0))).to_quaternion()
+                obj.rotation_mode = "XYZ"
+        return {'FINISHED'}
+
+
 def convertColor(x):
     if(x > 0.0031308):
         return pow(x,1.0/2.4)*1.055-0.055
@@ -83,10 +114,14 @@ def convertColor(x):
 def register():
     bpy.utils.register_class(ConvertMaterial)
     bpy.utils.register_class(UpdateMaterial)
+    bpy.utils.register_class(ConvertLocator)
+    bpy.utils.register_class(RotateMesh)
 
 def unregister():
     bpy.utils.unregister_class(ConvertMaterial)
     bpy.utils.unregister_class(UpdateMaterial)
+    bpy.utils.unregister_class(ConvertLocator)
+    bpy.utils.unregister_class(RotateMesh)
 
 if __name__ == "__main__":
     register()
