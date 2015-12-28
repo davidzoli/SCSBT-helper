@@ -10,12 +10,12 @@ bl_info = {
  "tracker_url": "",
  "category": "Material"}
 
-
 import bpy
+from bpy.types import Panel
 
 class ConvertMaterial(bpy.types.Operator):
-    bl_idname = "object.convert_material"
-    bl_label = "Convert BT Material"
+    bl_idname = "converter.convert_material"
+    bl_label = "Convert Material for BT"
 
     def execute(self, context):
         floats = ["add_ambient", "reflection", "reflection2", "shadow_bias", "shininess", "tint_opacity"]
@@ -62,8 +62,8 @@ class ConvertMaterial(bpy.types.Operator):
         return {'FINISHED'}
 
 class UpdateMaterial(bpy.types.Operator):
-    bl_idname = "object.update_material"
-    bl_label = "Update BT Material"
+    bl_idname = "converter.update_material"
+    bl_label = "Update Material for BT"
 
     def execute(self, context):
         colors = ["shader_attribute_diffuse", "shader_attribute_env_factor", "shader_attribute_specular", "shader_attribute_tint"]
@@ -75,8 +75,8 @@ class UpdateMaterial(bpy.types.Operator):
         return {'FINISHED'}
 
 class ConvertLocator(bpy.types.Operator):
-    bl_idname = "object.convert_locator"
-    bl_label = "Convert BT Locator"
+    bl_idname = "converter.convert_locator"
+    bl_label = "Convert Locator for BT"
 
     def execute(self, context):
         from math import pi
@@ -92,8 +92,8 @@ class ConvertLocator(bpy.types.Operator):
         return {'FINISHED'}
 
 class RotateMesh(bpy.types.Operator):
-    bl_idname = "object.rotate_mesh"
-    bl_label = "Rotate BT Mesh"
+    bl_idname = "converter.rotate_mesh"
+    bl_label = "Rotate Mesh for BT"
 
     def execute(self, context):
         from math import pi
@@ -103,6 +103,27 @@ class RotateMesh(bpy.types.Operator):
                 obj.rotation_quaternion = (obj.rotation_quaternion.to_matrix().to_4x4() * Matrix.Rotation(pi/2, 4, (1,0,0)) * Matrix.Rotation(pi, 4, (0,1,0))).to_quaternion()
                 obj.rotation_mode = "XYZ"
         return {'FINISHED'}
+
+class Material_helper_tools(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "material"
+    bl_label = "SCS Conversion Helpers"
+
+    def draw(self, context):
+        layout = self.layout
+        #row = layout.row()
+        #row.label(text="Active object material slot info:")
+
+        col = layout.column(align=True)
+        col.operator("converter.rotate_mesh")
+        col.operator("converter.convert_locator")
+
+        row = layout.row()
+        row.separator()
+
+        col.operator("converter.convert_material")
+        col.operator("converter.update_material")
 
 
 def convertColor(x):
@@ -116,12 +137,14 @@ def register():
     bpy.utils.register_class(UpdateMaterial)
     bpy.utils.register_class(ConvertLocator)
     bpy.utils.register_class(RotateMesh)
+    bpy.utils.register_class(Material_helper_tools)
 
 def unregister():
     bpy.utils.unregister_class(ConvertMaterial)
     bpy.utils.unregister_class(UpdateMaterial)
     bpy.utils.unregister_class(ConvertLocator)
     bpy.utils.unregister_class(RotateMesh)
+    bpy.utils.unregister_class(Material_helper_tools)
 
 if __name__ == "__main__":
     register()
