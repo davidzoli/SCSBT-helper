@@ -1,10 +1,10 @@
 bl_info = {
- "name": "Convert material",
+ "name": "Conversion helpers",
  "author": "David Zoltan (davidzoli)",
  "version": (1, 0),
  "blender": (2, 6, 4),
  "location": "View3D > Object > BT Materials",
- "description": "Copies the material properties from pmd to pim format",
+ "description": "Helper function for converting a pmd to a pim format",
  "warning": "",
  "wiki_url": "",
  "tracker_url": "",
@@ -63,7 +63,7 @@ class ConvertMaterial(bpy.types.Operator):
 
 class UpdateMaterial(bpy.types.Operator):
     bl_idname = "converter.update_material"
-    bl_label = "Update Material for BT"
+    bl_label = "Update RGB to Linear"
 
     def execute(self, context):
         colors = ["shader_attribute_diffuse", "shader_attribute_env_factor", "shader_attribute_specular", "shader_attribute_tint"]
@@ -76,7 +76,7 @@ class UpdateMaterial(bpy.types.Operator):
 
 class ConvertLocator(bpy.types.Operator):
     bl_idname = "converter.convert_locator"
-    bl_label = "Convert Locator for BT"
+    bl_label = "Convert Slot to Locator"
 
     def execute(self, context):
         from math import pi
@@ -88,17 +88,22 @@ class ConvertLocator(bpy.types.Operator):
                 obj.rotation_mode = "XYZ"
                 obj.scs_props.empty_object_type = "Locator"
                 obj.scs_props.locator_type = "Model"
-                obj.name = obj.name.strip("[]").lower()
+                obj.name = obj.name.lower()
         return {'FINISHED'}
 
 class RotateMesh(bpy.types.Operator):
     bl_idname = "converter.rotate_mesh"
-    bl_label = "Rotate Mesh for BT"
+    bl_label = "Rotate Element for BT"
 
     def execute(self, context):
         from math import pi
         from mathutils import Matrix
         for obj in bpy.context.selected_objects:
+            if obj.scs_props.empty_object_type == "Locator":
+                override = get_override( 'VIEW_3D', 'WINDOW' )
+                bpy.ops.transform.rotate(override, value=pi/2, axis=(1,0,0))
+                bpy.ops.transform.rotate(override, value=pi, axis=(0,0,1))
+            else:
                 obj.rotation_mode = "QUATERNION"
                 obj.rotation_quaternion = (obj.rotation_quaternion.to_matrix().to_4x4() * Matrix.Rotation(pi/2, 4, (1,0,0)) * Matrix.Rotation(pi, 4, (0,1,0))).to_quaternion()
                 obj.rotation_mode = "XYZ"
@@ -116,14 +121,33 @@ class Material_helper_tools(Panel):
         #row.label(text="Active object material slot info:")
 
         col = layout.column(align=True)
-        col.operator("converter.rotate_mesh")
-        col.operator("converter.convert_locator")
-
-        row = layout.row()
-        row.separator()
 
         col.operator("converter.convert_material")
         col.operator("converter.update_material")
+
+class Mesh_helper_tools(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    bl_label = "SCS Conversion Helpers"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        col.operator("converter.rotate_mesh")
+        col.operator("converter.convert_locator")
+
+#http://blender.stackexchange.com/questions/6969/rotate-object-around-cursor-with-python
+def get_override(area_type, region_type):
+    for area in bpy.context.screen.areas:
+        if area.type == area_type:
+            for region in area.regions:
+                if region.type == region_type:
+                    override = {'area': area, 'region': region}
+                    return override
+    #error message if the area or region wasn't found
+    raise RuntimeError("Wasn't able to find", region_type," in area ", area_type,
+                        "\n Make sure it's open while executing script.")
 
 
 def convertColor(x):
@@ -138,6 +162,7 @@ def register():
     bpy.utils.register_class(ConvertLocator)
     bpy.utils.register_class(RotateMesh)
     bpy.utils.register_class(Material_helper_tools)
+    bpy.utils.register_class(Mesh_helper_tools)
 
 def unregister():
     bpy.utils.unregister_class(ConvertMaterial)
@@ -145,6 +170,7 @@ def unregister():
     bpy.utils.unregister_class(ConvertLocator)
     bpy.utils.unregister_class(RotateMesh)
     bpy.utils.unregister_class(Material_helper_tools)
+    bpy.utils.unregister_class(Mesh_helper_tools)
 
 if __name__ == "__main__":
     register()
