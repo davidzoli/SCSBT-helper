@@ -1,6 +1,6 @@
 bl_info = {
  "name": "Conversion helpers",
- "author": "David Zoltan (davidzoli)",
+ "author": "David Zoltan (davidzoli), Special thanks to Simon Lušenc (simon50keda)",
  "version": (1, 0),
  "blender": (2, 6, 4),
  "location": "View3D > Object > BT Materials",
