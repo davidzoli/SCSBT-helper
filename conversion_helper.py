@@ -88,7 +88,7 @@ class ConvertLocator(bpy.types.Operator):
                 obj.rotation_mode = "XYZ"
                 obj.scs_props.empty_object_type = "Locator"
                 obj.scs_props.locator_type = "Model"
-                obj.name = obj.name.lower()
+                obj.name = obj.name.strip("[]").lower()
         return {'FINISHED'}
 
 class RotateMesh(bpy.types.Operator):
